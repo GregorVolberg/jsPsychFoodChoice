@@ -3,7 +3,71 @@
   <head>
     <title>My experiment</title>
     <script src="https://unpkg.com/jspsych@7.1.2"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@1.1.0"></script>
     <link href="https://unpkg.com/jspsych@7.1.2/css/jspsych.css" rel="stylesheet" type="text/css" />
   </head>
   <body></body>
+  <script>
+    const minFixationTime = 800;
+    const maxFixationTime = 1200;
+
+var jsPsych = initJsPsych({
+  on_finish: function() {
+  jsPsych.data.displayData();
+  }
+});
+
+var subject_id = jsPsych.randomization.randomID(15);
+
+var timeline = [];
+
+var instruct = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: "Im jedem Durchgang werden Ihnen zwei Bilder von Gerichten gezeigt. Geben Sie mit den Pfeiltasten an, welches Gericht Sie wählen würden, links oder rechts."
+};
+
+var fixation = {
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: '<div style="font-size:60px;">+</div>',
+  choices: "NO_KEYS",
+  trial_duration: function(){
+  return  jsPsych.randomization.randomInt(minFixationTime, maxFixationTime);
+  },
+  data: {task: 'fixation'}
+};
+
+var test = {
+  type: jsPsychImageKeyboardResponse,
+  stimulus: jsPsych.timelineVariable('stimulus'),
+  choices: ['ArrowLeft', 'ArrowRight'],
+  data:{task: 'response'},
+  post_trial_gap: function(){
+  return  jsPsych.randomization.randomInt(minFixationTime, maxFixationTime);
+  }
+}
+
+var test_stimuli = [
+      { stimulus: 'stim/neutral/image_45.png'},
+      { stimulus: 'stim/sad/image_90.png'}
+    ];
+
+var test_procedure = {
+  timeline: [fixation, test],
+  timeline_variables: test_stimuli,
+  randomize_order: true
+}
+
+var debrief = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: 'Press any key to end the experiment. Thank you.'
+    };
+//  adds trials to end of timeline
+timeline.push(instruct, test_procedure, debrief);
+ 
+jsPsych.run(timeline);
+jsPsych.data.addProperties({
+  subject: subject_id})
+
+  </script>
 </html>
